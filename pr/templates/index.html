@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDA & Feature Engineering Pipeline Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar or Header Brand -->
+        <header class="header">
+            <div class="logo-area">
+                <div class="logo-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                <div class="logo-text">
+                    <h1>CleanFlow</h1>
+                    <p>Automated EDA & Feature Engineering Engine</p>
+                </div>
+            </div>
+            <div class="header-status">
+                <span class="status-badge idle" id="status-badge"><i class="fa-solid fa-circle-dot"></i> Pipeline Idle</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Top Controls Grid -->
+            <section class="controls-card card">
+                <div class="card-header">
+                    <h2><i class="fa-solid fa-file-csv"></i> Dataset Ingestion</h2>
+                    <p>Upload your raw house listings or generic CSV dataset to run the advanced cleaning pipeline.</p>
+                </div>
+                
+                <div class="upload-zone" id="drop-zone">
+                    <input type="file" id="file-input" accept=".csv" class="hidden-input">
+                    <div class="upload-content">
+                        <div class="upload-icon-wrapper">
+                            <i class="fa-solid fa-cloud-arrow-up animate-bounce"></i>
+                        </div>
+                        <h3>Drag & Drop CSV File</h3>
+                        <p>or click to browse local files (max 10MB)</p>
+                        <div class="selected-file-info hidden" id="file-info">
+                            <i class="fa-solid fa-file-excel text-teal"></i>
+                            <span class="file-name" id="file-name">house_listings.csv</span>
+                            <span class="file-size" id="file-size">(24.5 KB)</span>
+                            <button class="remove-file-btn" id="remove-file" title="Remove file"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls-actions">
+                    <button class="btn btn-primary" id="run-btn" disabled>
+                        <i class="fa-solid fa-play"></i> Run Cleaning Pipeline
+                    </button>
+                </div>
+                
+                <!-- Error Alert Box -->
+                <div class="alert alert-danger hidden" id="error-alert">
+                    <div class="alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                    <div class="alert-message">
+                        <h4 id="error-title">Pipeline Execution Failed</h4>
+                        <p id="error-text">Missing required columns: area_sqft, price, neighborhood...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Execution Progress & Logs Terminal -->
+            <section class="terminal-card card hidden" id="terminal-section">
+                <div class="card-header">
+                    <div class="terminal-header-left">
+                        <h2><i class="fa-solid fa-terminal"></i> Pipeline Console Logs</h2>
+                        <p>Real-time execution capture of data cleanliness analysis steps.</p>
+                    </div>
+                    <div class="spinner-wrapper" id="spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+                <div class="terminal-console">
+                    <div class="terminal-controls">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-path">cleanflow@engine:~/pipeline_run$</span>
+                    </div>
+                    <div class="terminal-body" id="console-body">
+                        <!-- Streamed console lines here -->
+                        <div class="terminal-line system-msg">Ready to start execution. Waiting for file run...</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pre/Post Cleaning Comparison -->
+            <section class="comparison-section hidden" id="comparison-section">
+                <div class="section-title">
+                    <h2><i class="fa-solid fa-chart-pie"></i> Data Quality Audit Metrics</h2>
+                    <p>Side-by-side statistics comparing raw inputs against cleaned results.</p>
+                </div>
+                
+                <div class="comparison-grid">
+                    <!-- Before Card -->
+                    <div class="audit-card before-card card">
+                        <div class="audit-badge before">Before Pipeline</div>
+                        <div class="audit-header">
+                            <span class="metric-title">Initial Observations</span>
+                            <h3 class="metric-val" id="before-rows">0 <span class="subtext">rows</span></h3>
+                        </div>
+                        <div class="audit-details">
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-table-columns"></i> Dimension</span>
+                                <span class="value" id="before-dim">0 cols</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-clone"></i> Duplicate Rows</span>
+                                <span class="value text-warning" id="before-dups">0</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-triangle-exclamation"></i> Total Missing Values</span>
+                                <span class="value text-danger" id="before-missing">0%</span>
+                            </div>
+                        </div>
+                        <div class="missing-breakdown-box">
+                            <h4>Missingness per Column:</h4>
+                            <ul class="missing-list" id="before-missing-list">
+                                <!-- Filled by JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- After Card -->
+                    <div class="audit-card after-card card">
+                        <div class="audit-badge after">After CleanFlow</div>
+                        <div class="audit-header">
+                            <span class="metric-title">Cleaned Observations</span>
+                            <h3 class="metric-val" id="after-rows">0 <span class="subtext">rows</span></h3>
+                        </div>
+                        <div class="audit-details">
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-table-columns"></i> Dimension</span>
+                                <span class="value" id="after-dim">0 cols</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-shield-halved"></i> Duplicate Rows</span>
+                                <span class="value text-success" id="after-dups">0</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="label"><i class="fa-solid fa-circle-check"></i> Total Missing Values</span>
+                                <span class="value text-success" id="after-missing">0</span>
+                            </div>
+                        </div>
+                        <div class="column-changes-box">
+                            <div class="change-col-group">
+                                <h4 class="text-danger"><i class="fa-solid fa-minus-circle"></i> Columns Dropped:</h4>
+                                <div class="col-pill-container" id="dropped-cols-container">
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+                            <div class="change-col-group">
+                                <h4 class="text-success"><i class="fa-solid fa-plus-circle"></i> Engineered Features:</h4>
+                                <div class="col-pill-container" id="added-cols-container">
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visualizations Dashboard -->
+            <section class="visuals-section hidden" id="visuals-section">
+                <div class="section-title">
+                    <h2><i class="fa-solid fa-chart-line"></i> Exploratory Visualizations</h2>
+                    <p>Plots generated automatically during EDA and outlier clipping.</p>
+                </div>
+                
+                <div class="visuals-grid">
+                    <!-- Plot 1 -->
+                    <div class="visual-card card">
+                        <div class="visual-header">
+                            <h3>Raw Distributions</h3>
+                            <span class="vis-badge">EDA Phase 1A</span>
+                        </div>
+                        <div class="visual-body">
+                            <img id="chart-distributions" src="" alt="Raw Distributions Plot" class="clickable-image">
+                        </div>
+                        <div class="visual-footer">
+                            <p>Histogram of core numerical columns showing skewness and raw distributions.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Plot 2 -->
+                    <div class="visual-card card">
+                        <div class="visual-header">
+                            <h3>Outliers Winsorization</h3>
+                            <span class="vis-badge">EDA Phase 1D</span>
+                        </div>
+                        <div class="visual-body">
+                            <img id="chart-outliers" src="" alt="Outliers winsorization plot" class="clickable-image">
+                        </div>
+                        <div class="visual-footer">
+                            <p>Boxplots showing IQR clipping on `area_sqft` and Z-Score replacement on `price`.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Plot 3 -->
+                    <div class="visual-card card">
+                        <div class="visual-header">
+                            <h3>Correlation Heatmap</h3>
+                            <span class="vis-badge">EDA Phase 2C</span>
+                        </div>
+                        <div class="visual-body">
+                            <img id="chart-correlation" src="" alt="Correlation Heatmap" class="clickable-image">
+                        </div>
+                        <div class="visual-footer">
+                            <p>Final Pearson correlation coefficients between numeric and engineered features.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Cleaned Data Table Preview -->
+            <section class="preview-section hidden" id="preview-section">
+                <div class="section-title">
+                    <h2><i class="fa-solid fa-magnifying-glass-chart"></i> Cleaned Data Preview</h2>
+                    <p>Displaying first 10 rows of the processed, model-ready dataset.</p>
+                </div>
+                
+                <div class="preview-card card">
+                    <div class="table-container">
+                        <table id="preview-table">
+                            <thead>
+                                <tr id="table-headers">
+                                    <!-- Dynamic headers -->
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="export-banner">
+                        <div class="banner-text">
+                            <h3>Ready to Export!</h3>
+                            <p>The cleaned, encoded, and engineered CSV dataset is available for download.</p>
+                        </div>
+                        <a href="/download-cleaned" class="btn btn-success btn-large" id="download-btn">
+                            <i class="fa-solid fa-download"></i> Download Cleaned CSV
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="footer">
+            <p>CleanFlow Engine v1.0.0 &copy; 2026. Designed for Data Scientists, ML Engineers, and Business Demonstrations.</p>
+        </footer>
+    </div>
+
+    <!-- Image High-Res Modal Viewer -->
+    <div class="image-modal hidden" id="image-modal">
+        <span class="modal-close" id="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <div class="modal-content-wrapper">
+            <img src="" id="modal-img" alt="Zoomed Visualizer">
+            <div class="modal-caption" id="modal-caption">Caption text</div>
+        </div>
+    </div>
+    
+    <!-- Custom JavaScript -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
