@@ -1,50 +1,280 @@
-<h1 align="center">📊 Advanced EDA & Feature Engineering Pipeline</h1>
+<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white" alt="Python Version">
-  <img src="https://img.shields.io/badge/Pandas-2.0%2B-150458?logo=pandas&logoColor=white" alt="Pandas">
-  <img src="https://img.shields.io/badge/Scikit--Learn-F7931E?logo=scikit-learn&logoColor=white" alt="Scikit-Learn">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
+# 🏠 Advanced EDA & Feature Engineering
+
+### Transforming raw, chaotic housing data into a mathematically clean, ML-ready dataset
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![pandas](https://img.shields.io/badge/pandas-2.0+-150458?style=flat-square&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-1.24+-013243?style=flat-square&logo=numpy&logoColor=white)](https://numpy.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![Pandera](https://img.shields.io/badge/Pandera-validated-2ea44f?style=flat-square)](https://pandera.readthedocs.io/)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
+
+<p>
+  <a href="#-quickstart">Quickstart</a> •
+  <a href="#-what-this-project-does">What it does</a> •
+  <a href="#-pipeline-architecture">Architecture</a> •
+  <a href="#-results">Results</a> •
+  <a href="#-requirements-coverage">Requirements coverage</a>
 </p>
 
-<p align="center">
-  <strong>An enterprise-grade data preprocessing pipeline that automates cleaning, anomaly mitigation, and structural formatting for messy real estate datasets.</strong>
-</p>
-
----
-
-### 📍 Quick Navigation
-[🚀 Quickstart](#-quickstart) | [⚙️ Pipeline Architecture](#%EF%B8%8F-pipeline-architecture) | [📦 Project Structure](#-project-structure) | [📈 Exploratory Visualizations](#-exploratory-visualizations) | [✅ Phase Explanations](#-requirements-coverage--detailed-phase-explanations)
+</div>
 
 ---
 
 ## 📌 Overview
-Real-world datasets are rarely ready for Machine Learning models; they suffer from unmitigated outliers, multi-collinearity, unstructured categorical text, and severe data skewness. This repository implements an automated, reproducible **Data Science Pipeline** that takes raw, volatile house listing data and transforms it into an optimized, model-ready format using advanced mathematical strategies (IQR clipping, Z-score Winsorization, and Pandas/Pandera validation).
+
+Machine learning models don't reason — they optimize numbers. Feed them
+messy data and they'll confidently learn the wrong pattern. This project
+takes a **realistic, messy housing dataset** (missing values, outliers,
+duplicate rows, inconsistent text formatting) and runs it through a
+production-style cleaning pipeline:
+
+> **Raw chaos → Validated, mathematically clean, ML-ready data**
+
+Built as **Project 1** of the DecodeLabs Data Science Industrial Training
+Kit, fully implementing the brief *plus* the advanced enterprise-grade
+extensions (missingness decision matrix, One-Hot Encoding, multicollinearity
+removal, and runtime schema validation).
 
 ---
 
-## 🛠️ Features & Transformations
+## ✨ What This Project Does
 
-| Data Engineering Technique | Why It Matters / Business Impact |
-| :--- | :--- |
-| **Missingness Decision Matrix** | Dynamically drops or imputes missing entries based on severity (<5% drop, 5-20% imputation, >20% KNN). |
-| **Z-Score & IQR Winsorization** | Clips extreme outliers safely without dropping valuable real estate records. |
-| **Multi-Collinearity Removal** | Cleans features with high correlation to prevent model over-fitting and variance inflation. |
-| **Pandera Schema Validation** | Enforces strict programmatic check constraints to maintain downstream data integrity. |
+| Stage | Technique | Why it matters |
+|---|---|---|
+| 🧹 **Missing Data** | Decision Matrix: Drop (<5%) → Median/Mode (5–20%) → KNN (>20%) | Picks the right fix per column instead of one blanket rule |
+| 🎯 **Outlier Handling** | IQR + Z-Score, with **Winsorization** (clipping) | Removes data-entry errors without losing rows |
+| 🔢 **Encoding** | One-Hot Encoding (not Label Encoding) | Avoids inventing false numeric order between categories |
+| 🧮 **Feature Engineering** | 4 new predictive features | Gives the model signal it can't see in raw columns |
+| 🔗 **Multicollinearity** | Auto-detects & removes correlated pairs (>0.80) | Prevents unstable, redundant model inputs |
+| ✅ **Validation** | Pandera schema contract | Catches bad data before it reaches a model or API |
 
 ---
 
 ## 🚀 Quickstart
 
-Follow these explicit steps to configure your local environment in **VS Code** and run the data pipeline.
+```bash
+# 1. Clone and enter the project
+git clone <your-repo-url>
+cd pr
 
-### Step 1: Environment Setup
-Clone the repository and navigate to the project directory, then create a clean python virtual environment.
+# 2. Create & activate a virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run the pipeline
+python src/01_pipeline.py
+```
+
+Output lands in `outputs/`: the cleaned CSV plus 3 diagnostic charts.
+
+<details>
+<summary><strong>🖥️ Prefer a browser UI instead of the terminal?</strong></summary>
+<br>
+
+This repo also includes a Flask + HTML/CSS/JS web app (`app.py`) so you can
+upload a CSV, run the pipeline, and see before/after results in your browser.
 
 ```bash
-# Clone and enter directory
-git clone [https://github.com/diksha-2228/DecodeLabs.git](https://github.com/diksha-2228/DecodeLabs.git)
-cd DecodeLabs
+python app.py
+```
+Then open **http://localhost:5000**.
 
-# Create virtual environment
-python -m venv venv
+</details>
+
+---
+
+## 🏗️ Pipeline Architecture
+
+```mermaid
+flowchart LR
+    A[📂 Raw CSV] --> B[Phase 1: INPUT]
+    B --> B1[Missing Data<br/>Decision Matrix]
+    B --> B2[Outlier Detection<br/>IQR + Z-Score]
+    B1 --> C[Phase 2: PROCESS]
+    B2 --> C
+    C --> C1[One-Hot<br/>Encoding]
+    C --> C2[Feature<br/>Engineering]
+    C --> C3[Multicollinearity<br/>Removal]
+    C1 --> D[Phase 3: OUTPUT]
+    C2 --> D
+    C3 --> D
+    D --> D1[Pandera<br/>Validation]
+    D1 --> E[✅ Clean Dataset]
+```
+
+---
+
+## 📂 Folder Structure
+
+```
+pr/
+│
+├── data/
+│   └── raw_house_listings.csv      # messy "raw" input dataset
+│
+├── src/
+│   ├── 00_generate_raw_data.py     # generates the synthetic messy data
+│   └── 01_pipeline.py              # ⭐ main project script — run this
+│
+├── outputs/                        # generated by the pipeline
+│   ├── cleaned_house_listings.csv  # final ML-ready dataset
+│   ├── 01_raw_distributions.png
+│   ├── 02_outliers_after_treatment.png
+│   └── 03_correlation_heatmap.png
+│
+├── app.py                          # optional Flask web UI
+├── templates/ , static/            # web UI frontend assets
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## 📊 Results
+
+<table>
+<tr>
+<td width="50%">
+
+**Before cleaning**
+- 506 rows, 8 columns
+- Missing values: 3%–25% across columns
+- 6 duplicate rows
+- Inconsistent text casing (`Suburb` / `suburb` / `  Suburb  `)
+- Data-entry-error outliers (e.g. 17,500 sq ft listing)
+
+</td>
+<td width="50%">
+
+**After cleaning**
+- 470 rows, 13 columns
+- **0** missing values
+- **0** duplicates
+- 4 new engineered features
+- Pandera-validated schema contract
+
+</td>
+</tr>
+</table>
+
+**Raw data distributions:**
+
+![Raw distributions](outputs/01_raw_distributions.png)
+
+**Outlier treatment (before → after):**
+
+![Outliers after treatment](outputs/02_outliers_after_treatment.png)
+
+**Final feature correlation heatmap:**
+
+![Correlation heatmap](outputs/03_correlation_heatmap.png)
+
+---
+
+## ✅ Requirements Coverage
+
+<details>
+<summary><strong>Click to expand full requirement-to-code mapping</strong></summary>
+<br>
+
+| Requirement | Implementation |
+|---|---|
+| Missing data via Mean/Median/KNN | `missing_data_decision_matrix()` |
+| Missingness Decision Matrix (<5% / 5–20% / >20%) | `missing_data_decision_matrix()` |
+| Outlier handling via Z-Score or IQR | `handle_outliers()` |
+| Winsorization (clip, not delete) | `handle_outliers()` — uses `.clip()` |
+| 3+ engineered features | `engineer_features()` — 4 features created |
+| Vectorized operations (no loops) | All steps use pandas/NumPy vector ops |
+| One-Hot Encoding | `one_hot_encode()` |
+| Multicollinearity Eradication (>0.80 corr) | `remove_multicollinearity()` |
+| Pandera schema validation | `validate_with_pandera()` |
+| Feast feature store | *Not implemented* — needs production DB/Redis infra; explained conceptually below |
+
+</details>
+
+---
+
+## 🧠 Pipeline Phases in Detail
+
+<details>
+<summary><strong>Phase 1 — Input (Securing Fidelity)</strong></summary>
+<br>
+
+1. Load raw data, inspect shape, dtypes, missing %, duplicates.
+2. Drop duplicate rows, standardize text casing.
+3. **Missing Data Decision Matrix** — routes each column by % missing:
+   - `< 5%` → drop rows
+   - `5–20%` → median/mode imputation
+   - `> 20%` → KNN imputation
+4. **Outlier handling** — IQR for `area_sqft`, Z-score for `price`, both
+   clipped instead of deleted to preserve row count.
+
+</details>
+
+<details>
+<summary><strong>Phase 2 — Process (Vectorized Engine)</strong></summary>
+<br>
+
+5. One-Hot Encode `neighborhood` — avoids implying false ordinal order.
+6. Engineer 4 new features:
+   - `price_per_sqft`
+   - `total_rooms`
+   - `is_new_construction`
+   - `proximity_score`
+7. **Multicollinearity Eradication** — detects column pairs correlated
+   above 0.80 and drops whichever correlates less with the target (`price`).
+
+</details>
+
+<details>
+<summary><strong>Phase 3 — Output (Structural Contracts)</strong></summary>
+<br>
+
+8. **Pandera validation** — enforces dtypes and value ranges on the final
+   dataset as a runtime contract, before it's considered ready for a model
+   or API to consume.
+
+</details>
+
+---
+
+## 🗂️ Using Your Own Dataset
+
+This demo's `raw_house_listings.csv` is synthetically generated to simulate
+realistic messiness. To use your own data:
+
+1. Drop a real CSV (e.g. from [Kaggle](https://www.kaggle.com/datasets) or
+   [UCI ML Repository](https://archive.ics.uci.edu/ml)) into `data/`.
+2. Update `RAW_PATH` at the top of `src/01_pipeline.py`.
+3. Adjust column names throughout the script to match your dataset.
+4. Pick a sensible `target` column for the multicollinearity step.
+
+> No API key is required anywhere in this project — it's pure
+> pandas / NumPy / scikit-learn running locally on a CSV file.
+
+---
+
+## 🛠️ Tech Stack
+
+`Python` · `pandas` · `NumPy` · `scikit-learn` · `Matplotlib` · `Seaborn` · `Pandera` · `Flask` (optional UI)
+
+---
+
+## 📄 License
+
+MIT — feel free to use this as a learning reference or portfolio piece.
+
+---
+
+<div align="center">
+
+Built as part of the <strong>DecodeLabs Data Science Industrial Training Kit</strong>
+
+</div>
