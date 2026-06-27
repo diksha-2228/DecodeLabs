@@ -1,144 +1,280 @@
-# Project 1: Advanced EDA & Feature Engineering (Full Version)
+<div align="center">
 
-This is a complete, runnable demo covering **every requirement** from the
-DecodeLabs Project 1 brief, including the advanced "enterprise-grade"
-pieces (missingness decision matrix, One-Hot Encoding, multicollinearity
-removal, and Pandera schema validation).
+# 🏠 Advanced EDA & Feature Engineering
+
+### Transforming raw, chaotic housing data into a mathematically clean, ML-ready dataset
+
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![pandas](https://img.shields.io/badge/pandas-2.0+-150458?style=flat-square&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-1.24+-013243?style=flat-square&logo=numpy&logoColor=white)](https://numpy.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
+[![Pandera](https://img.shields.io/badge/Pandera-validated-2ea44f?style=flat-square)](https://pandera.readthedocs.io/)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](#license)
+
+<p>
+  <a href="#-quickstart">Quickstart</a> •
+  <a href="#-what-this-project-does">What it does</a> •
+  <a href="#-pipeline-architecture">Architecture</a> •
+  <a href="#-results">Results</a> •
+  <a href="#-requirements-coverage">Requirements coverage</a>
+</p>
+
+</div>
 
 ---
 
-## 📁 Folder structure
+## 📌 Overview
+
+Machine learning models don't reason — they optimize numbers. Feed them
+messy data and they'll confidently learn the wrong pattern. This project
+takes a **realistic, messy housing dataset** (missing values, outliers,
+duplicate rows, inconsistent text formatting) and runs it through a
+production-style cleaning pipeline:
+
+> **Raw chaos → Validated, mathematically clean, ML-ready data**
+
+Built as **Project 1** of the DecodeLabs Data Science Industrial Training
+Kit, fully implementing the brief *plus* the advanced enterprise-grade
+extensions (missingness decision matrix, One-Hot Encoding, multicollinearity
+removal, and runtime schema validation).
+
+---
+
+## ✨ What This Project Does
+
+| Stage | Technique | Why it matters |
+|---|---|---|
+| 🧹 **Missing Data** | Decision Matrix: Drop (<5%) → Median/Mode (5–20%) → KNN (>20%) | Picks the right fix per column instead of one blanket rule |
+| 🎯 **Outlier Handling** | IQR + Z-Score, with **Winsorization** (clipping) | Removes data-entry errors without losing rows |
+| 🔢 **Encoding** | One-Hot Encoding (not Label Encoding) | Avoids inventing false numeric order between categories |
+| 🧮 **Feature Engineering** | 4 new predictive features | Gives the model signal it can't see in raw columns |
+| 🔗 **Multicollinearity** | Auto-detects & removes correlated pairs (>0.80) | Prevents unstable, redundant model inputs |
+| ✅ **Validation** | Pandera schema contract | Catches bad data before it reaches a model or API |
+
+---
+
+## 🚀 Quickstart
+
+```bash
+# 1. Clone and enter the project
+git clone <your-repo-url>
+cd pr
+
+# 2. Create & activate a virtual environment
+python -m venv venv
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # macOS/Linux
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Run the pipeline
+python src/01_pipeline.py
+```
+
+Output lands in `outputs/`: the cleaned CSV plus 3 diagnostic charts.
+
+<details>
+<summary><strong>🖥️ Prefer a browser UI instead of the terminal?</strong></summary>
+<br>
+
+This repo also includes a Flask + HTML/CSS/JS web app (`app.py`) so you can
+upload a CSV, run the pipeline, and see before/after results in your browser.
+
+```bash
+python app.py
+```
+Then open **http://localhost:5000**.
+
+</details>
+
+---
+
+## 🏗️ Pipeline Architecture
+
+```mermaid
+flowchart LR
+    A[📂 Raw CSV] --> B[Phase 1: INPUT]
+    B --> B1[Missing Data<br/>Decision Matrix]
+    B --> B2[Outlier Detection<br/>IQR + Z-Score]
+    B1 --> C[Phase 2: PROCESS]
+    B2 --> C
+    C --> C1[One-Hot<br/>Encoding]
+    C --> C2[Feature<br/>Engineering]
+    C --> C3[Multicollinearity<br/>Removal]
+    C1 --> D[Phase 3: OUTPUT]
+    C2 --> D
+    C3 --> D
+    D --> D1[Pandera<br/>Validation]
+    D1 --> E[✅ Clean Dataset]
+```
+
+---
+
+## 📂 Folder Structure
 
 ```
-Project1_Full/
+pr/
 │
 ├── data/
-│   └── raw_house_listings.csv      <- the messy "raw" dataset (input)
+│   └── raw_house_listings.csv      # messy "raw" input dataset
 │
 ├── src/
-│   ├── 00_generate_raw_data.py     <- ONLY generates the fake messy data.
-│   │                                  Skip this in a real project — you'd
-│   │                                  download a real CSV instead.
-│   └── 01_pipeline.py              <- THE MAIN PROJECT SCRIPT. Run this.
+│   ├── 00_generate_raw_data.py     # generates the synthetic messy data
+│   └── 01_pipeline.py              # ⭐ main project script — run this
 │
-├── outputs/                        <- everything the pipeline produces:
-│   ├── cleaned_house_listings.csv  <- final ML-ready dataset
-│   ├── 01_raw_distributions.png    <- histograms before cleaning
+├── outputs/                        # generated by the pipeline
+│   ├── cleaned_house_listings.csv  # final ML-ready dataset
+│   ├── 01_raw_distributions.png
 │   ├── 02_outliers_after_treatment.png
-│   └── 03_correlation_heatmap.png  <- final feature correlations
+│   └── 03_correlation_heatmap.png
 │
-├── requirements.txt                <- pip install -r requirements.txt
-└── README.md                       <- this file
+├── app.py                          # optional Flask web UI
+├── templates/ , static/            # web UI frontend assets
+├── requirements.txt
+└── README.md
 ```
 
 ---
 
-## ⚙️ Setup (VS Code / local machine)
+## 📊 Results
 
-1. **Install Python 3.10+** if you don't already have it.
+<table>
+<tr>
+<td width="50%">
 
-2. **Create a virtual environment** (recommended, keeps things clean):
-   ```bash
-   python -m venv venv
-   ```
-   Activate it:
-   - Windows: `venv\Scripts\activate`
-   - Mac/Linux: `source venv/bin/activate`
+**Before cleaning**
+- 506 rows, 8 columns
+- Missing values: 3%–25% across columns
+- 6 duplicate rows
+- Inconsistent text casing (`Suburb` / `suburb` / `  Suburb  `)
+- Data-entry-error outliers (e.g. 17,500 sq ft listing)
 
-3. **Install all required libraries:**
-   ```bash
-   pip install -r requirements.txt
-   ```
+</td>
+<td width="50%">
 
-4. **Open the folder in VS Code:**
-   ```bash
-   code .
-   ```
-   Make sure the Python extension is installed, and select the `venv`
-   interpreter (bottom-right corner of VS Code, or `Ctrl+Shift+P` →
-   "Python: Select Interpreter").
+**After cleaning**
+- 470 rows, 13 columns
+- **0** missing values
+- **0** duplicates
+- 4 new engineered features
+- Pandera-validated schema contract
 
-5. **Run the pipeline** from the project root folder (not inside `src/`):
-   ```bash
-   python src/01_pipeline.py
-   ```
-   This reads `data/raw_house_listings.csv` and writes everything to
-   `outputs/`.
+</td>
+</tr>
+</table>
 
-   If you ever want to regenerate the messy raw dataset from scratch:
-   ```bash
-   python src/00_generate_raw_data.py
-   ```
+**Raw data distributions:**
 
----
+![Raw distributions](outputs/01_raw_distributions.png)
 
-## 🗂️ Where the dataset comes from
+**Outlier treatment (before → after):**
 
-For this **demo**, `data/raw_house_listings.csv` was synthetically generated
-by `00_generate_raw_data.py` to simulate a realistic messy housing dataset
-(missing values at different rates, outliers, duplicate rows, inconsistent
-text casing) — like what you'd actually find on Kaggle.
+![Outliers after treatment](outputs/02_outliers_after_treatment.png)
 
-**For your real submission**, replace this with a real dataset:
-- **Kaggle** (kaggle.com/datasets) — search "house prices", "used cars",
-  "employee attrition", "Airbnb listings", etc.
-- **UCI ML Repository** (archive.ics.uci.edu/ml)
+**Final feature correlation heatmap:**
 
-Drop your real CSV into `data/`, update the `RAW_PATH` variable at the top
-of `01_pipeline.py`, and adjust the column names used throughout the script
-to match your dataset's actual columns.
-
-**No API key is needed anywhere in this project.** It's pure
-pandas/NumPy/scikit-learn running locally on a CSV file.
+![Correlation heatmap](outputs/03_correlation_heatmap.png)
 
 ---
 
-## ✅ How this maps to the PDF requirements
+## ✅ Requirements Coverage
 
-| PDF Requirement | Where it's implemented |
+<details>
+<summary><strong>Click to expand full requirement-to-code mapping</strong></summary>
+<br>
+
+| Requirement | Implementation |
 |---|---|
 | Missing data via Mean/Median/KNN | `missing_data_decision_matrix()` |
-| **Missingness Decision Matrix** (<5% drop / 5-20% impute / >20% KNN) | `missing_data_decision_matrix()` |
+| Missingness Decision Matrix (<5% / 5–20% / >20%) | `missing_data_decision_matrix()` |
 | Outlier handling via Z-Score or IQR | `handle_outliers()` |
-| **Winsorization** (clip, not delete) | `handle_outliers()` — uses `.clip()` |
-| 3+ engineered features | `engineer_features()` — 4 features made |
-| **Vectorized operations (no loops)** | All steps use pandas/NumPy vector ops |
-| **One-Hot Encoding** (not Label Encoding) | `one_hot_encode()` |
-| **Multicollinearity Eradication** (>0.80 corr, target comparison) | `remove_multicollinearity()` |
-| **Pandera schema validation (Output contract)** | `validate_with_pandera()` |
-| Feast feature store | **Not implemented** — requires a real database/Redis backend, which is production infrastructure, not practical for a learning project. Conceptually: it's a central place that stores feature-engineering logic once, so your training pipeline and your live API never calculate features differently. |
+| Winsorization (clip, not delete) | `handle_outliers()` — uses `.clip()` |
+| 3+ engineered features | `engineer_features()` — 4 features created |
+| Vectorized operations (no loops) | All steps use pandas/NumPy vector ops |
+| One-Hot Encoding | `one_hot_encode()` |
+| Multicollinearity Eradication (>0.80 corr) | `remove_multicollinearity()` |
+| Pandera schema validation | `validate_with_pandera()` |
+| Feast feature store | *Not implemented* — needs production DB/Redis infra; explained conceptually below |
+
+</details>
 
 ---
 
-## 📝 What each pipeline phase does
+## 🧠 Pipeline Phases in Detail
 
-**Phase 1 — Input (Securing Fidelity)**
-1. Load raw data, inspect it (`.info()`, `.describe()`, missing %, duplicates).
-2. Basic hygiene: drop duplicate rows, fix inconsistent text casing.
-3. Missing Data Decision Matrix: route each column to drop/impute/KNN based
-   on its % missing.
-4. Outlier handling: IQR for `area_sqft`, Z-score for `price`, both clipped
-   instead of deleted.
+<details>
+<summary><strong>Phase 1 — Input (Securing Fidelity)</strong></summary>
+<br>
 
-**Phase 2 — Process (Vectorized Engine)**
-5. One-Hot Encode `neighborhood` (avoids implying false ordering).
-6. Engineer 4 new features: `price_per_sqft`, `total_rooms`,
-   `is_new_construction`, `proximity_score`.
-7. Multicollinearity Eradication: detect column pairs correlated >0.80,
-   drop whichever correlates less with `price`.
+1. Load raw data, inspect shape, dtypes, missing %, duplicates.
+2. Drop duplicate rows, standardize text casing.
+3. **Missing Data Decision Matrix** — routes each column by % missing:
+   - `< 5%` → drop rows
+   - `5–20%` → median/mode imputation
+   - `> 20%` → KNN imputation
+4. **Outlier handling** — IQR for `area_sqft`, Z-score for `price`, both
+   clipped instead of deleted to preserve row count.
 
-**Phase 3 — Output (Structural Contracts)**
-8. Pandera schema validation: enforce data types and value ranges on the
-   final dataset before it's considered "done."
+</details>
+
+<details>
+<summary><strong>Phase 2 — Process (Vectorized Engine)</strong></summary>
+<br>
+
+5. One-Hot Encode `neighborhood` — avoids implying false ordinal order.
+6. Engineer 4 new features:
+   - `price_per_sqft`
+   - `total_rooms`
+   - `is_new_construction`
+   - `proximity_score`
+7. **Multicollinearity Eradication** — detects column pairs correlated
+   above 0.80 and drops whichever correlates less with the target (`price`).
+
+</details>
+
+<details>
+<summary><strong>Phase 3 — Output (Structural Contracts)</strong></summary>
+<br>
+
+8. **Pandera validation** — enforces dtypes and value ranges on the final
+   dataset as a runtime contract, before it's considered ready for a model
+   or API to consume.
+
+</details>
 
 ---
 
-## 💡 Tips for adapting this to your own dataset
+## 🗂️ Using Your Own Dataset
 
-- Update `RAW_PATH` and column names in `01_pipeline.py` to match your CSV.
-- Re-decide which columns need Mean vs Median vs KNN based on their actual
-  distribution shape (skewed → median, normal → mean, correlated → KNN).
-- Pick a sensible `target` column name in `remove_multicollinearity()` —
-  it should be whatever you're ultimately trying to predict.
-- Engineer features that make domain sense for *your* data, not just
-  copy these four.
+This demo's `raw_house_listings.csv` is synthetically generated to simulate
+realistic messiness. To use your own data:
+
+1. Drop a real CSV (e.g. from [Kaggle](https://www.kaggle.com/datasets) or
+   [UCI ML Repository](https://archive.ics.uci.edu/ml)) into `data/`.
+2. Update `RAW_PATH` at the top of `src/01_pipeline.py`.
+3. Adjust column names throughout the script to match your dataset.
+4. Pick a sensible `target` column for the multicollinearity step.
+
+> No API key is required anywhere in this project — it's pure
+> pandas / NumPy / scikit-learn running locally on a CSV file.
+
+---
+
+## 🛠️ Tech Stack
+
+`Python` · `pandas` · `NumPy` · `scikit-learn` · `Matplotlib` · `Seaborn` · `Pandera` · `Flask` (optional UI)
+
+---
+
+## 📄 License
+
+MIT — feel free to use this as a learning reference or portfolio piece.
+
+---
+
+<div align="center">
+
+Built as part of the <strong>DecodeLabs Data Science Industrial Training Kit</strong>
+
+</div>
